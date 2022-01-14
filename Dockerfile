@@ -20,4 +20,4 @@ EXPOSE 8800/udp 8900/tcp
 VOLUME "/LMPServer/Config" "/LMPServer/Plugins" "/LMPServer/Universe" "/LMPServer/logs"
 STOPSIGNAL sigint
 WORKDIR /LMPServer
-CMD ./Server
+CMD dotnet Server.dll
