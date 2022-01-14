@@ -34,5 +34,5 @@ jobs:
         platforms: linux/arm64
         tags: |
           ghcr.io/rdbatch02/lmp-server-docker-arm:latest
-          ghcr.io/rdbatch02/lmp-server-docker-arm::${GITHUB_REF#refs/heads/}.${GITHUB_SHA::7}
+          ghcr.io/rdbatch02/lmp-server-docker-arm:${GITHUB_REF#refs/heads/}.${GITHUB_SHA::7}
         push: ${{ github.ref == 'refs/heads/main' }}
