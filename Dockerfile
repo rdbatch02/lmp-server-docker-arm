@@ -15,7 +15,7 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0.403-bullseye-slim-arm64v8
 
 ADD https://github.com/LunaMultiplayer/LunaMultiplayer/releases/download/0.28.0/LunaMultiplayer-Server-Release.zip LMPServer.zip
 RUN apt-get update && apt-get install unzip
-RUN unzip LMPServer.zip -d LMPServer
+RUN unzip LMPServer.zip -d .
 EXPOSE 8800/udp 8900/tcp
 VOLUME "/LMPServer/Config" "/LMPServer/Plugins" "/LMPServer/Universe" "/LMPServer/logs"
 STOPSIGNAL sigint

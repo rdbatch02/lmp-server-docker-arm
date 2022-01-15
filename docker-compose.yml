@@ -1,0 +1,11 @@
+services:
+  luna:
+    image: ghcr.io/rdbatch02/lmp-server-docker-arm:latest
+    volumes:
+      - ./config:/LMPServer/Config
+      - ./plugins:/LMPServer/Plugins
+      - ./universe:/LMPServer/Universe
+      - ./logs:/LMPServer/logs
+    ports:
+      - "8800:8800/udp"
+      - "8900:8900/tcp"
