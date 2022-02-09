@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-16"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ConnectionSettingsDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <!--The UDP port the server listens on. You don't need to open it on your router if RegisterWithMasterServer = true. If you want that players can connect against your server MANUALLY you will need to open it on your router-->
   <Port>8800</Port>
