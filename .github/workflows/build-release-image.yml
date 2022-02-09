@@ -53,7 +53,7 @@ jobs:
         draft: false
         prelease: false
         release_name: ${{ steps.vars.outputs.sha_short }}
-        tag_name: ${{ github.ref }}
+        tag_name: ${{ steps.vars.outputs.sha_short }}
       env:
         GITHUB_TOKEN: ${{ github.token }}
     - name: Upload Zip to Release
