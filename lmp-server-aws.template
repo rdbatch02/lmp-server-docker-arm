@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t4g.nano
+    Description: Instance size
+  AMI:
+    Type: String
+  Key:
+    Type: String
+    Description: Key for instance SSH access
+  VPC:
+    Type: String
+    Description: VPC ID to deploy Security Group into
+  SubnetId:
+    Type: String
+    Description: Subnet to deploy Instance into
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "Luna KSP Server SG"
+      GroupDescription: "Security group for Luna KSP server"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: udp
+          FromPort: 8800
+          ToPort: 8800
+          CidrIp: 0.0.0.0/0
+  Server:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AMI
+      InstanceType:
+        Ref: InstanceType
+      KeyName: !Ref Key
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds:
+        - Ref: SecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda"
+          Ebs:
+            VolumeType: "gp3"
+            Iops: "125"
+            DeleteOnTermination: "true"
+            VolumeSize: 10
+      Metadata:
+        AWS::CloudFormation::Init:
+            configSets:
+                ec2_bootstrap:
+                    - install_docker
+                    - install_compose
+                    - install_prereqs
+                    - pull_luna_config
+            install_docker:
+                packages:
+                    yum:
+                        docker: []
+                services:
+                    sysvinit:
+                        docker:
+                            enabled: "true"
+                            ensureRunning: "true"
+                commands:
+                    docker_for_ec2_user:
+                        command: usermod -G docker ec2-user
+            install_compose:
+              commands:
+                  01_download_compose:
+                    command: 
+                      - curl -L https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+                  02_set_executable_flag:
+                    command:
+                      - chmod +x /usr/local/bin/docker-compose
+                  03_create_symlink:
+                    command:
+                      - ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+            install_prereqs:
+              packages:
+                yum:
+                  unzip: []
+              commands:
+                xmlstarlet:
+                  command:
+                    - yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+                    - yum install -y xmlstarlet
+            pull_luna_config:
+              sources:
+                /home/lmp-server: "https://github.com/rdbatch02/lmp-server-docker-arm/releases/latest/download/lmp-server-docker.zip"
+              commands:
+                01_set_server_name:
+                  command: 
+                    - xmlstarlet --no-doc-namespace ed --inplace -u "/GeneralSettingsDefinition/ServerName" -v "My Luna Server" /home/lmp-server/config/GeneralSettings.xml
+                # xmlstarlet configuration into place
+                # docker-compose up
+      UserData:
+        "Fn::Base64":
+            !Sub |
+              #!/bin/bash -xe
+              # Get the latest CloudFormation package
+              yum update
+              yum install -y aws-cfn-bootstrap
+              # Start cfn-init
+              /opt/aws/bin/cfn-init -s ${AWS::StackId} -r Server --configsets ec2_bootstrap --region ${AWS::Region} 
+              # All done so signal success
+              /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource Server --region ${AWS::Region}
